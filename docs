@@ -1,6 +1,6 @@
 # Query Output Documentation Template
 
-Bu dosya, `sql/SOLUTIONS.sql` içinde yer alan her sorgunun çalıştırma çıktısını belgelemek için şablondur.
+Bu dosya, `sql/SOLUTIONS.sql` içinde yer alan her sorgunun çalıştırma çıktısını belgelemek için şablondur...
 
 ## 1.1 Kobiye Destek tarifesine abone müşteriler
 - Çalıştırılan sorgu: `SOLUTIONS.sql / 1.1`
