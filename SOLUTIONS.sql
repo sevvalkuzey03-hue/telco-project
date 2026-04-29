@@ -3,10 +3,10 @@
 -- Functional SQL answers aligned with CSV structure
 -- ============================================================
 
--- 1.1 'Kobiye Destek' tarifesine abone olan müşteriler
--- Bu sorguda önce müşteri tablosu ile tarife tablosu eşleştirilir ve her müşterinin bağlı olduğu paket bulunur.
--- Ardından sadece 'Kobiye Destek' isimli tarife için filtre uygulanarak ilgili müşteri kümesi daraltılır.
--- Son olarak okunabilir bir çıktı için müşteri adı, şehir ve kayıt tarihi ile birlikte sıralı bir liste döndürülür.
+-- 1.1 Customers subscribed to 'Kobiye Destek' tariff
+-- In this query, the customer table is joined with the tariff table to identify the package of each customer.
+-- Then a filter is applied for the tariff name 'Kobiye Destek' to narrow the result set to relevant customers.
+-- Finally, a readable ordered list is returned with customer name, city, and signup date.
 SELECT
     c.customer_id,
     c.name,
@@ -19,10 +19,10 @@ WHERE t.name = 'Kobiye Destek'
 ORDER BY c.signup_date DESC, c.customer_id;
 
 
--- 1.2 Bu tarifeye abone olan en yeni müşteri
--- Bu çözümde yine aynı tarife filtresi kullanılır ancak hedef sadece en son kayıtlanan müşteridir.
--- Oracle'da en güncel tarihi güvenli şekilde almak için kayıt tarihi azalan sıralanır ve ilk satır çekilir.
--- Eşit tarih durumunda tutarlı sonuç almak için customer_id ikincil sıralama anahtarı olarak kullanılır.
+-- 1.2 The newest customer subscribed to this tariff
+-- This solution uses the same tariff filter but the goal is to return only the most recently registered customer.
+-- In Oracle, signup date is sorted descending and only the first row is fetched to safely select the latest record.
+-- In case of equal dates, customer_id is used as a secondary sort key for deterministic output.
 SELECT
     c.customer_id,
     c.name,
@@ -35,10 +35,10 @@ ORDER BY c.signup_date DESC, c.customer_id DESC
 FETCH FIRST 1 ROW ONLY;
 
 
--- 2.1 Müşteriler arasında tarifelerin dağılımı
--- Bu sorgu, her tarifeye kaç müşterinin bağlı olduğunu göstermek için grup bazlı sayım yaklaşımı kullanır.
--- LEFT JOIN tercih edilerek henüz müşterisi olmayan tarifeler de raporda görünür ve analiz eksiksiz olur.
--- Toplam müşteri adedi azalan sıralanarak en yaygın tarifeler ilk satırlarda sunulur.
+-- 2.1 Tariff distribution among customers
+-- This query uses grouped counting to show how many customers are subscribed to each tariff.
+-- A LEFT JOIN is preferred so tariffs with zero customers still appear in the report for complete analysis.
+-- Results are sorted by customer count descending so the most common tariffs are listed first.
 SELECT
     t.tariff_id,
     t.name AS tariff_name,
@@ -49,10 +49,10 @@ GROUP BY t.tariff_id, t.name
 ORDER BY customer_count DESC, t.name;
 
 
--- 3.1 Kayıt olan en eski müşteriler
--- Buradaki kritik nokta en düşük ID yerine en eski kayıt tarihine göre değerlendirme yapmaktır.
--- Önce global minimum signup_date değeri bulunur, sonra bu tarihe sahip tüm müşteriler döndürülür.
--- Böylece aynı gün birden fazla müşteri kaydolduysa hepsi eksiksiz biçimde sonuçta yer alır.
+-- 3.1 Oldest registered customers
+-- The critical point is evaluating by earliest signup date instead of the lowest customer ID.
+-- First, the global minimum signup_date is found, then all customers with that date are returned.
+-- This ensures that if multiple customers signed up on the same day, all of them are included.
 SELECT
     c.customer_id,
     c.name,
@@ -66,10 +66,10 @@ WHERE c.signup_date = (
 ORDER BY c.customer_id;
 
 
--- 3.2 En eski müşterilerin şehir dağılımı
--- Bu analiz bir önceki sorgudaki en eski müşteri kümesini alt sorgu/CTE olarak tekrar kullanır.
--- Ardından şehir bazında gruplanarak her şehirde kaç adet ilk müşteri olduğu hesaplanır.
--- Sonuçlar adet azalan sıralandığı için şehir yoğunluğu doğrudan kıyaslanabilir.
+-- 3.2 City distribution of the oldest customers
+-- This analysis reuses the oldest-customer set from the previous query as a CTE.
+-- Then it groups by city to calculate how many of those first customers belong to each city.
+-- Results are sorted by count descending so city concentration can be compared directly.
 WITH first_customers AS (
     SELECT
         c.customer_id,
@@ -88,10 +88,10 @@ GROUP BY fc.city
 ORDER BY first_customer_count DESC, fc.city;
 
 
--- 4.1 Aylık kaydı eksik müşteriler
--- Bu veri setinde MONTHLY_STATS her müşteri için bu aya ait tek satır içerir ve bazı customer_id değerleri eksiktir.
--- Bu nedenle müşteri tablosundaki tüm ID'ler ile MONTHLY_STATS içindeki customer_id kümesi karşılaştırılarak eksikler bulunur.
--- LEFT JOIN + IS NULL paterni kullanıldığı için hem performanslı hem de okunabilir bir eksik kayıt kontrolü elde edilir.
+-- 4.1 Customers with missing monthly records
+-- In this dataset, MONTHLY_STATS contains one row per customer for the current month, but some customer_id values are missing.
+-- Therefore, all IDs in CUSTOMERS are compared with customer_id values in MONTHLY_STATS to detect missing ones.
+-- The LEFT JOIN + IS NULL pattern provides a readable and efficient missing-record check.
 SELECT
     c.customer_id
 FROM customers c
@@ -101,10 +101,10 @@ WHERE ms.customer_id IS NULL
 ORDER BY c.customer_id;
 
 
--- 4.2 Eksik müşterilerin şehir dağılımı
--- Bu çözümde önce eksik müşteri kümesi 4.1 ile aynı mantıkta CTE içinde çıkarılır.
--- Sonraki aşamada bu müşteri listesi şehir bilgisiyle birleştirilir ve şehir bazında sayılır.
--- Böylece veri giriş hatasının hangi şehirlerde yoğunlaştığı operasyon ekiplerine net bir şekilde raporlanabilir.
+-- 4.2 City distribution of missing customers
+-- In this solution, the missing customer set is first extracted in a CTE using the same logic as 4.1.
+-- In the next step, this list is grouped by city and counted.
+-- This clearly shows in which cities the data entry issue is concentrated.
 WITH missing_customers AS (
     SELECT
         c.customer_id,
@@ -122,10 +122,10 @@ GROUP BY mc.city
 ORDER BY missing_customer_count DESC, mc.city;
 
 
--- 5.1 Veri limitinin en az %75'ini kullanan müşteriler
--- Burada kullanım tablosu ile müşteri-tarife zinciri birleştirilerek her satırda kullanıcının paket limiti erişilebilir hale getirilir.
--- Kullanım oranı, kullanılan veri / paket veri limiti formülüyle hesaplanır ve yüzde 75 eşiği filtrelenir.
--- Sıfıra bölme riskini önlemek için NULLIF kullanılarak veri limiti 0 olan anomaliler güvenli şekilde ele alınır.
+-- 5.1 Customers who used at least 75% of data limit
+-- Here, the usage table is joined with customer and tariff tables so the package limits are accessible per row.
+-- The usage ratio is calculated as used data divided by data limit, and rows above the 75% threshold are filtered.
+-- NULLIF is used to prevent division-by-zero errors for tariffs with zero data limit.
 SELECT
     c.customer_id,
     c.name,
@@ -139,10 +139,10 @@ WHERE (ms.data_usage / NULLIF(t.data_limit, 0)) >= 0.75
 ORDER BY data_usage_pct DESC, c.customer_id;
 
 
--- 5.2 Veri, dakika ve SMS limitlerinin tamamını tüketen müşteriler
--- Bu sorgu tek bir kayıtta üç kaynağın da limite ulaşıp ulaşmadığını aynı anda kontrol eder.
--- Karşılaştırma operatörü olarak >= kullanılması, limiti aşan kullanımları da dahil ederek daha gerçekçi bir yakalama sağlar.
--- Sonuçta hedef ay bazlı olarak tam tüketim davranışı gösteren müşteriler analitik ekip için listelenir.
+-- 5.2 Customers who consumed all package limits (data, minutes, SMS)
+-- This query checks whether all three resources reach their limits in the same record.
+-- Using the >= operator includes both exactly-at-limit and over-limit usage, which is more realistic.
+-- As a result, customers showing full package consumption behavior are listed for analytics.
 SELECT
     c.customer_id,
     c.name,
@@ -158,10 +158,10 @@ WHERE ms.data_usage >= t.data_limit
 ORDER BY c.customer_id;
 
 
--- 6.1 Ödenmemiş ücreti olan müşteriler
--- Bu veri setinde finansal durum MONTHLY_STATS içindeki PAYMENT_STATUS alanında tutulur.
--- Ödenmemiş veya gecikmiş ücretleri temsil eden durumlar 'UNPAID' ve 'LATE' olduğundan bu iki değer filtrelenir.
--- Çıktıda müşteri bilgisiyle birlikte durum bilgisi verilerek takip ekiplerinin aksiyon alması kolaylaştırılır.
+-- 6.1 Customers with unpaid fees
+-- In this dataset, financial status is stored in the PAYMENT_STATUS column inside MONTHLY_STATS.
+-- Since unpaid or delayed fees are represented by 'UNPAID' and 'LATE', these two values are filtered.
+-- The output includes customer information and status to support follow-up operations.
 SELECT
     c.customer_id,
     c.name,
@@ -173,10 +173,10 @@ WHERE ms.payment_status IN ('UNPAID', 'LATE')
 ORDER BY ms.payment_status, c.customer_id;
 
 
--- 6.2 Ödeme durumlarının tarifelere göre dağılımı
--- Önce ödeme kaydı müşteriye, müşteri de tarifeye bağlanarak her ödeme satırının hangi tarifeye ait olduğu bulunur.
--- Sonra tarife ve ödeme durumu kırılımında gruplama yapılarak adet bazlı dağılım elde edilir.
--- Bu yapı, örneğin belirli bir tarifede UNPAID oranı yüksekse kampanya veya tahsilat stratejisi geliştirmek için kullanılabilir.
+-- 6.2 Distribution of payment statuses by tariff
+-- First, monthly status rows are linked to customers and then to tariffs to identify the tariff for each payment status record.
+-- Then grouped counts are calculated by tariff and payment status.
+-- This helps detect patterns, for example if one tariff has a high UNPAID ratio and needs action.
 SELECT
     t.name AS tariff_name,
     ms.payment_status,
