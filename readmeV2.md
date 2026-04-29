@@ -1,32 +1,32 @@
-# Telco SQL Ödevi (Oracle XE)
+# Telco SQL Homework (Oracle XE)
 
-Merhaba, bu repoda ödev için hazırladığım dosyalar var.
-Amaç: Oracle XE üstünde veritabanını kurup CSV dosyalarını içeri almak ve istenen SQL sorgularını çalıştırmak.
+Hi, this repo contains the files I prepared for the homework.
+Goal: set up the database on Oracle XE, import CSV files, and run the required SQL queries.
 
-## Bu projede hangi dosyalar var?
+## Which files are in this project?
 
-- `docker-compose.yml` -> Oracle XE container başlatmak için
-- `sql/TABLE_CREATION_SCRIPTS.sql` -> tabloları oluşturmak için
-- `sql/SOLUTIONS.sql` -> soruların SQL cevapları için
+- `docker-compose.yml` -> to start the Oracle XE container
+- `sql/TABLE_CREATION_SCRIPTS.sql` -> to create tables
+- `sql/SOLUTIONS.sql` -> SQL answers for the questions
 
-## 1) Oracle'ı Docker ile ayağa kaldırma
+## 1) Start Oracle with Docker
 
-Bilgisayarda Docker Desktop kurulu olmalı.
+Docker Desktop should be installed on your computer.
 
-Terminalde proje klasöründe şunu çalıştır:
+Run this command in the project folder:
 
 ```bash
 docker compose up -d
 ```
 
-Kontrol etmek için:
+To check status:
 
 ```bash
 docker ps
 docker logs -f telco-oracle-xe
 ```
 
-Bağlantı bilgileri:
+Connection details:
 
 - Host: `localhost`
 - Port: `1521`
@@ -34,60 +34,60 @@ Bağlantı bilgileri:
 - User: `telco_user`
 - Password: `telco_pass`
 
-Not: Container ilk açılırken `TABLE_CREATION_SCRIPTS.sql` otomatik çalışır.
+Note: when the container starts for the first time, `TABLE_CREATION_SCRIPTS.sql` runs automatically.
 
-## 2) DBeaver ile bağlanma
+## 2) Connect with DBeaver
 
-1. DBeaver aç
-2. `New Database Connection` de
-3. `Oracle` seç
-4. Yukarıdaki bağlantı bilgilerini gir
-5. `Test Connection` yap
-6. Sonra kaydet
+1. Open DBeaver
+2. Click `New Database Connection`
+3. Select `Oracle`
+4. Enter the connection details above
+5. Click `Test Connection`
+6. Save
 
-## 3) CSV dosyalarını içeri aktarma
+## 3) Import CSV files
 
-Kullanılan dosyalar:
+Used files:
 
 - `TARIFFS.csv`
 - `CUSTOMERS.csv`
 - `MONTHLY_STATS.csv`
 
-Sıra önemli, şu sırayla import et:
+Order is important, import in this order:
 
 1. `tariffs`
 2. `customers`
 3. `monthly_stats`
 
-Import adımı:
+Import steps:
 
-- İlgili tabloya sağ tık
-- `Import Data`
-- CSV seç
-- Kolon eşleşmelerini kontrol et
+- Right click the related table
+- Click `Import Data`
+- Select CSV
+- Check column mappings
 
-Önemli not:
+Important notes:
 
-- `CUSTOMERS.csv` içindeki `SIGNUP_DATE` için format `DD/MM/YYYY` olmalı
-- `MONTHLY_STATS.csv` içindeki `PAYMENT_STATUS` değerleri: `PAID`, `LATE`, `UNPAID`
+- For `SIGNUP_DATE` in `CUSTOMERS.csv`, date format should be `DD/MM/YYYY`
+- `PAYMENT_STATUS` values in `MONTHLY_STATS.csv` are: `PAID`, `LATE`, `UNPAID`
 
-## 4) Sorguları çalıştırma
+## 4) Run the queries
 
-1. DBeaver SQL Editor'da `sql/SOLUTIONS.sql` dosyasını aç
-2. Sorguları sırayla çalıştır
-3. Çıktıların ekran görüntüsünü al
+1. Open `sql/SOLUTIONS.sql` in DBeaver SQL Editor
+2. Run queries one by one
+3. Take screenshots of the outputs
 
-## 5) Kısa kontrol listesi
+## 5) Short checklist
 
-- [x] Tablo scripti hazır
-- [x] Sorgu scripti hazır
-- [x] Docker ile ortam açılıyor
-- [ ] CSV import yapıldı
-- [ ] Sorgu sonuç ekran görüntüleri alındı
+- [x] Table script is ready
+- [x] Query script is ready
+- [x] Environment starts with Docker
+- [ ] CSV import completed
+- [ ] Query result screenshots taken
 
-## 6) Ekran görüntüsü isim önerisi
+## 6) Suggested screenshot names
 
-`docs/` klasörüne şu şekilde koyabilirsin:
+You can save them under `docs/` like this:
 
 - `docs/01-docker-running.png`
 - `docs/02-dbeaver-connection-test.png`
